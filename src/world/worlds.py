@@ -18,10 +18,16 @@ class World:
     def add_model(self, model):
         self._models.append(model)
 
+    def clear(self):
+        return self._renderer.clear()
+
     def update(self):
         for model in self._models:
             model.update()
 
     def render(self):
         self._renderer.render()
+
+    def show(self):
+        self._renderer.show()
     
