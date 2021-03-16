@@ -181,9 +181,9 @@ class DummyCubeModel(Model):
 
     def _calculate_cube_coordinates(self):
         delta = 1
-        center_x = self._pos_x
-        center_y = self._pos_y
-        center_z = self._pos_z
+        center_x = 0
+        center_y = 0
+        center_z = 0
 
         point_1 = np.array([center_x + delta, center_y + delta, center_z + delta, 1])
         point_2 = np.array([center_x - delta, center_y + delta, center_z + delta, 1])
@@ -211,6 +211,10 @@ class DummyCubeModel(Model):
                                  self._pos_x,
                                  self._pos_y,
                                  self._pos_z)
+
+        
+
+        
 
 
 class ObjModel(Model):
