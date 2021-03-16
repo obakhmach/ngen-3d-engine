@@ -136,7 +136,7 @@ class PerspectiveCamera:
     	return self._world
 
     def move_x(self, value):
-        self._pos_x += value
+        self._pos_x -= value
 
     def move_y(self, value):
         self._pos_y += value
