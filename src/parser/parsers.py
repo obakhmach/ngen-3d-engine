@@ -42,10 +42,14 @@ class SimpleObjParser:
                 surfaces.append(surface)
 
             elif normal_regex.match(line):
-                normal = np.array([float(normal.replace('/n', '')) 
-                                       for normal 
-                                       in line.split(' ')[1:] 
-                                       if normal not in ['', '\n']], dtype=np.float)
+                normal = [float(normal.replace('/n', '')) 
+                          for normal 
+                          in line.split(' ')[1:] 
+                          if normal not in ['', '\n']]
+
+                normal.append(1)
+
+                normal = np.array(normal)
 
                 normals.append(normal)
 

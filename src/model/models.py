@@ -1,9 +1,9 @@
 import numpy as np
 
 from ..parser.parsers import SimpleObjParser
-from ..tool.tools import rotate
-from ..tool.tools import scale
-from ..tool.tools import translate
+from ..tool.tools import calc_rotation_matrix
+from ..tool.tools import calc_translation_matrix
+from ..tool.tools import calc_scaling_matrix
 
 
 class Model:
@@ -197,20 +197,23 @@ class DummyCubeModel(Model):
         self._vertexes = np.array([point_1, point_2, point_3, point_4, point_5, point_6, point_7, point_8])
 
     def update(self):
-        self._points = scale(self._vertexes,
-                             self._scale_x,
-                             self._scale_y,
-                             self._scale_z)
+        scaling_matrix = calc_scaling_matrix(self._scale_x,
+                                             self._scale_y,
+                                             self._scale_z)
 
-        self._points = rotate(self._points, 
-                              self._angle_x_deg,
-                              self._angle_y_deg,
-                              self._angle_z_deg)
+        rotation_matrix = calc_rotation_matrix(self._angle_x_deg,
+                                               self._angle_y_deg,
+                                               self._angle_z_deg)
 
-        self._points = translate(self._points,
-                                 self._pos_x,
-                                 self._pos_y,
-                                 self._pos_z)
+        translation_matrix = calc_translation_matrix(self._pos_x,
+                                                     self._pos_y,
+                                                     self._pos_z)
+
+        transform_matrix = np.matmul(translation_matrix, rotation_matrix)
+
+        self._points = np.matmul(self._vertexes, scaling_matrix.T)
+        self._points = np.matmul(self._points[:,:], transform_matrix.T)
+
 
         
 

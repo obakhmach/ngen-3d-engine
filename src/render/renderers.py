@@ -5,40 +5,54 @@ from src.model.models import ObjModel
 from src.model.models import DummyCubeModel
 
 
+def world_needed(cls):
+    for attr in cls.__dict__:
+        if callable(getattr(cls, attr)) and '_' not in attr:
+            def decorator(f):
+                def wrapper(*args, **kwargs):
+                    if isinstance(args[0], cls) and args[0].world is None:
+                        raise ValueError('Renderer can not be used without attaching it to world.')
+
+                    return f(*args, **kwargs)
+                
+                return wrapper
+
+            setattr(cls, attr, decorator(getattr(cls, attr)))
+    return cls
+
+
+# @world_needed
 class DummyOpencvRenderer:
-    DEFAULT_SCREEN_WIDTH = 800
-    DEFAULT_SCREEN_HEIGHT = 700
     DEFAULT_CHANNELS = 3
     DEFAULT_BACKGROUND_COLOR = (0, 0, 0)
 
     def __init__(self,
-                 world,
-                 screen_width=None,
-                 screen_height=None,
                  channels=None,
                  background_color=None):
-        self._world = world
-
-        if screen_width is None:
-            screen_width = self.DEFAULT_SCREEN_WIDTH
-
-        if screen_height is None:
-            screen_height = self.DEFAULT_SCREEN_HEIGHT
-
         if channels is None:
             channels = self.DEFAULT_CHANNELS
 
         if background_color is None:
             background_color = self.DEFAULT_BACKGROUND_COLOR
 
-        self._screen_width = screen_width
-        self._screen_height = screen_height
         self._channels = channels
         self._background_color = background_color
 
-        self._background = np.zeros((self._screen_height,
-        	                         self._screen_width,
+    @property
+    def world(self):
+    	return self._world
+    
+    @world.setter
+    def world(self, value):
+        if value.camera is None:
+            raise ValueError('The world without camera can not be rendered.')
+
+        self._world = value
+
+        self._background = np.zeros((self._world.camera.projective_plane_height,
+        	                         self._world.camera.projective_plane_width,
         	                         self._channels), dtype=np.uint8)
+
         self._background[:] = self._background_color
         self._scene = self._background.copy()
 
@@ -47,14 +61,16 @@ class DummyOpencvRenderer:
 
         for i in range(0, len(surfaces), 1):
             surface = surfaces[i]
-            points = points[surface[:,0].astype(int) - 1]
+            contour_normals = (normals[surface[:,1].astype(int) - 1] * 100).astype(int)
+            contour_points = points[surface[:,0].astype(int) - 1].astype(int)
 
-            cv2.drawContours(image, [points], 0, (0, 255, 0), -1)
+            cv2.drawContours(image, [contour_points], 0, (0, 255, 0), -1)
 
-            for point in points:
-                image = cv2.circle(image, (point[0], point[1]), 4, (0, 0, 0), -1)
+            for normal, point in zip(contour_normals, contour_points):
+                image = cv2.circle(image, (point[0] + 1, point[1] + 1), 4, (0, 0, 255), -1)
+                image = cv2.line(image, (point[0], point[1]), (point[0] + normal[0], point[1] + normal[1]),(0, 0, 255), 1, 1)
 
-            cv2.drawContours(image, [points], 0, (255,0,0), 2)
+            cv2.drawContours(image, [contour_points], 0, (255,0,0), 2)
 
         self._scene = image
 
@@ -109,12 +125,13 @@ class DummyOpencvRenderer:
         self._scene = image
 
     def _render_obj(self, model):
-        points = self._world.camera.view(model, self._screen_width, self._screen_height)
+        points = self._world.camera.view(model)
+        normals = self._world.camera.view_normals(model)
 
         return self._draw_obj(points, model._normals, model._surfaces)
 
     def _render_dummy_cube(self, model):
-        points = self._world.camera.view(model, self._screen_width, self._screen_height)
+        points = self._world.camera.view(model)
 
         return self._draw_cube(points)
 
