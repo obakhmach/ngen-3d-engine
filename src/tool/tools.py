@@ -46,3 +46,34 @@ def calc_projection_matrix(field_of_view_angle_deg, aspect_ratio, far, near):
                      [0, field_of_view, 0, 0],
                      [0, 0, (far + near) / (far - near), 1],
                      [0, 0, (2 * near * far) / (near - far), 0]])
+
+
+def normals_to_degrees(normals):
+    # The normal is the projection of the sinle sized vector on the each of coordinates.
+    # So the normal_x =  single_size_vector_scalar * cos(angle_to_x_axe) = 1 * cos(angle_to_x_axe)
+    # So the normal_x = cos(angle_to_x_axe).
+    # So the angle_to_x_axe_degrees = degrees(arccos(angle_to_x_axe))
+    return np.degrees(np.arccos(normals[:,:]))
+
+
+def degrees_to_normals(degrees):
+    # The normal is the projection of the sinle sized vector on the each of coordinates.
+    # So the normal_x =  single_size_vector_scalar * cos(angle_to_x_axe) = 1 * cos(angle_to_x_axe)
+    # So the normal_x = cos(angle_to_x_axe).
+    # So the angle_to_x_axe_degrees = degrees(arccos(angle_to_x_axe))
+    return np.round(np.cos(np.radians(degrees[:,:])), 3)
+
+
+def parametrical_line_point(point, normal, distance):
+    normal_a = normal[0]
+    normal_b = normal[1]
+    normal_c = normal[2]
+    x = point[0]
+    y = point[1]
+    z = point[2]
+
+    new_point_x = x + normal_a * distance 
+    new_point_y = y + normal_b * distance 
+    new_point_z = z + normal_c * distance 
+
+    return np.array([new_point_x, new_point_y, new_point_z, 1])

@@ -4,6 +4,10 @@ import numpy as np
 from ..tool.tools import calc_rotation_matrix
 from ..tool.tools import calc_translation_matrix
 from ..tool.tools import calc_projection_matrix
+from ..tool.tools import parametrical_line_point
+from ..tool.tools import calc_rotation_matrix
+from ..tool.tools import calc_translation_matrix
+from ..tool.tools import calc_scaling_matrix
 
 from src.model.models import ObjModel
 from src.model.models import DummyCubeModel
@@ -68,13 +72,13 @@ class PerspectiveCamera:
             angle_z_deg = 0
 
         if field_of_view_angle_deg is None:
-            field_of_view_angle_deg = 2
+            field_of_view_angle_deg = 30
 
         if aspect_ratio is None:
             aspect_ratio = 1
 
         if near is None:
-            near = 20
+            near = 1
 
         if far is None:
             far = 100
@@ -237,6 +241,7 @@ class PerspectiveCamera:
         delta_angle_y_deg = self._angle_y_deg - self._angle_y_deg_before
         delta_angle_z_deg = self._angle_z_deg - self._angle_z_deg_before
         points = model.points
+        normals = model._normals
 
         tranlate_matrix = calc_translation_matrix(delta_x, delta_y, delta_z)
         rotate_matrix = calc_rotation_matrix(delta_angle_x_deg, delta_angle_y_deg, delta_angle_z_deg)
@@ -252,6 +257,30 @@ class PerspectiveCamera:
 
         points = np.matmul(points[:,:], transform_matrix.T)
 
+        ###############
+
+        normals = np.matmul(normals[:,:], np.linalg.inv(transform_matrix))
+
+        normal_lines = []
+
+        for i in range(0, len(model._surfaces), 1):
+            surface = model._surfaces[i]
+            contour_normals = (normals[surface[:,1].astype(int) - 1])
+            contour_points = points[surface[:,0].astype(int) - 1]
+
+            group = []
+
+            for j, (normal, start_point) in enumerate(zip(contour_normals, contour_points)):
+                end_point = parametrical_line_point(start_point, normal, 5)
+                normal_line = np.array([start_point, end_point])
+
+                group.append(normal_line)
+
+
+            normal_lines.append(group)
+
+        ###############
+
         self._prev_transform = transform_matrix
 
         projection_matrix = calc_projection_matrix(self._field_of_view_angle_deg,
@@ -260,6 +289,19 @@ class PerspectiveCamera:
                                                    self._near)
 
         points = np.matmul(points[:,:], projection_matrix.T)
+        normals = np.matmul(normals[:,:], np.linalg.inv(projection_matrix))
+
+        ###############
+        
+        for i, normal_line_group in enumerate(normal_lines):
+            for j, normal_line in enumerate(normal_line_group):
+                normal_line_points = normal_line
+
+                normal_line_points = np.matmul(normal_line_points[:,:], projection_matrix.T)
+
+                normal_lines[i][j] =  self.perspective_division(normal_line_points)
+
+        ##############
 
         self._pos_x_before = self._pos_x
         self._pos_y_before = self._pos_y
@@ -268,49 +310,7 @@ class PerspectiveCamera:
         self._angle_y_deg_before = self.angle_y_deg
         self._angle_z_deg_before = self.angle_z_deg
 
-        return self.perspective_division(points)
+        return self.perspective_division(points), normals, np.array(normal_lines)
 
-
-    def view_normals(self, model):
-        delta_x = self._pos_x - self._pos_x_before
-        delta_y = self._pos_y - self._pos_y_before
-        delta_z = self._pos_z - self._pos_z_before
-        delta_angle_x_deg = self._angle_x_deg - self._angle_x_deg_before
-        delta_angle_y_deg = self._angle_y_deg - self._angle_y_deg_before
-        delta_angle_z_deg = self._angle_z_deg - self._angle_z_deg_before
-        normals = model._normals
-
-        tranlate_matrix = calc_translation_matrix(delta_x, delta_y, delta_z)
-        rotate_matrix = calc_rotation_matrix(delta_angle_x_deg, delta_angle_y_deg, delta_angle_z_deg)
-        transform_matrix = np.matmul(rotate_matrix, tranlate_matrix)
-
-        if self._prev_transform is None:
-            prev_tranlate_matrix = calc_translation_matrix(self._pos_x, self.pos_y, self.pos_z)
-            prev_rotate_matrix = calc_rotation_matrix(self._angle_x_deg, self._angle_y_deg, self._angle_z_deg)
-
-            self._prev_transform = np.matmul(rotate_matrix, tranlate_matrix)
-
-        transform_matrix = np.matmul(transform_matrix, self._prev_transform)
-
-        normals = np.matmul(normals[:,:], np.linalg.inv(transform_matrix))
-
-        self._prev_transform = transform_matrix
-
-        projection_matrix = calc_projection_matrix(self._field_of_view_angle_deg,
-                                                   self._aspect_ratio,
-                                                   self._far,
-                                                   self._near)
-
-        normals = np.matmul(normals[:,:], projection_matrix.T)
-
-
-        self._pos_x_before = self._pos_x
-        self._pos_y_before = self._pos_y
-        self._pos_z_before = self._pos_z
-        self._angle_x_deg_before = self.angle_x_deg
-        self._angle_y_deg_before = self.angle_y_deg
-        self._angle_z_deg_before = self.angle_z_deg
-
-        return self.perspective_division(normals)
 
         

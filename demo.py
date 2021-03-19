@@ -18,12 +18,11 @@ if __name__ == '__main__':
     world.renderer = renderer
 
     model_obj_path = str(Path('data') / 'cube.obj')
-    model = ObjModel(model_obj_path, scale_x=20, scale_y=20, scale_z=20)
+    model = ObjModel(model_obj_path, scale_x=10, scale_y=10, scale_z=10)
 
-    dummy_model = DummyCubeModel(scale_x=50, scale_y=50, scale_z=50)
 
-    world.add_model(dummy_model)
-    world.camera.move_z(-50)
+    world.add_model(model)
+    world.camera.move_z(-40)
     
     world.update()
 
@@ -31,16 +30,16 @@ if __name__ == '__main__':
         key = world.clear()
 
         if key == ord('w'):
-            world.camera.move_z(10)
+            world.camera.move_z(1)
 
         elif key == ord('s'):
-            world.camera.move_z(-10)
+            world.camera.move_z(-1)
 
         elif key == ord('a'):
-            world.camera.move_x(-10)
+            world.camera.move_x(-1)
 
         elif key == ord('d'):
-            world.camera.move_x(10)
+            world.camera.move_x(1)
 
         elif key == ord('t'):
             world.camera.rotate_x(5)
@@ -54,7 +53,16 @@ if __name__ == '__main__':
         elif key == ord('h'):
             world.camera.rotate_y(-5)
 
-        world.models[0].rotate_z(5)
+        elif key == ord('o'):
+            world.models[0].rotate_y(10)
+
+        elif key == ord('p'):
+            world.models[0].rotate_y(-10)
+
+        # for model in world.models:
+
+        #     model.rotate_z(4)
+        #     model.rotate_y(3)
 
 
         world.update()
