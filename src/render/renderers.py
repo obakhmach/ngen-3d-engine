@@ -6,6 +6,7 @@ from src.model.models import ObjModel
 from src.model.models import DummyCubeModel
 
 from ..tool.tools import parametrical_line_point
+from ..tool.tools import normals_to_degrees
 
 
 def world_needed(cls):
@@ -59,112 +60,45 @@ class DummyOpencvRenderer:
         self._background[:] = self._background_color
         self._scene = self._background.copy()
 
-    def _draw_obj(self, points, normals, surfaces, normal_lines):
+    def _draw_obj(self, points, normals, surfaces, color):
         image = self._scene
-        data = {}
+
+        surface_describtion = {}
 
         for surface in surfaces:
             contour_points = points[surface[:,0].astype(int) - 1].astype(int)
             contour_normals = normals[surface[:,1].astype(int) - 1]
 
-            ax = contour_points[0][0]
-            bx = contour_points[1][0]
-            cx = contour_points[2][0]
-            ay = contour_points[0][1]
-            by = contour_points[1][1]
-            cy = contour_points[2][1]
+            surface_points = []
 
-            s = int(abs((ax * (by - cy) + bx * (cy - ay) + cx * (ay - by)) / 2))
+            for contour_normal, contour_point in zip(contour_normals, contour_points):
+                surface_point = [contour_point[0], contour_point[1], contour_normal[0], contour_normal[1], contour_normal[2]]
 
-            if contour_normals[:,2].min() > 0: # and contour_normals[:,1].min() == 0:
-                print(contour_normals)
-                if not data.get(s):
-                    data[s] = [surface]
+                surface_points.append(surface_point)
 
-                else:
-                    data[s].append(surface)
+            surface_points = np.array(surface_points)
 
-        
-        keys = sorted(data)
+            surface_normal = (np.mean(contour_normals[:, 0]), np.mean(contour_normals[:, 1]), np.mean(contour_normals[:, 2]))
 
-        print(keys)
+            if surface_describtion.get(surface_normal):
+                surface_describtion[surface_normal].append(surface_points)
 
-        # Render surfaces
-        # for surface in surfaces:
-        #     contour_points = points[surface[:,0].astype(int) - 1].astype(int)
-        #     contour_normals = normals[surface[:,1].astype(int) - 1]
+            else:
+                surface_describtion[surface_normal] = [surface_points]
 
-        #     if contour_normals[:,2].min() >= 0:
-        #         cv2.drawContours(image, [contour_points], 0, (150, 100, 120), -1)
+        keys = surface_describtion.keys()
+
+        keys = sorted(keys, key=lambda x: (x[2], -x[0], -x[1]))
 
         for key in keys:
-            s = data.get(key)
-            for surface in s:
-                contour_points = points[surface[:,0].astype(int) - 1].astype(int)
-                contour_normals = normals[surface[:,1].astype(int) - 1]
+            surface_data = surface_describtion[key]
+            surface_data = np.array(surface_data)
 
-                if contour_normals[:,2].min() >= 0:
-                    cv2.drawContours(image, [contour_points], 0, (150, 100, 120), -1)
+            surface_contours = surface_data[:,:,0:2].astype(np.int)
 
-            for surface in s:
-                contour_points = points[surface[:,0].astype(int) - 1].astype(int)
-                contour_normals = normals[surface[:,1].astype(int) - 1]
-
-                if contour_normals[:,2].min() >= 0:
-                    cv2.drawContours(image, [contour_points], 0, (150, 255, 120), 1)
-
-      
-        # contour_points = points[surfaces[6][:,0].astype(int) - 1].astype(int)
-        # contour_normals = normals[surfaces[6][:,1].astype(int) - 1]
-
-        # print(contour_normals)
-
-        # mc = contour_points[:,0].max() - (self.world.camera.   .projective_plane_width / 2)
-        # co = 30 / self.world.camera.projective_plane_width
-
-        # angle_deg = abs(math.radians(co* mc))
-        # # print(math.degrees(contour_normals[2][2]))
-
-        # # breakpoint()
-        # # # exit()
-        # cv2.drawContours(image, [contour_points], 0, (150, 100, 255), -1)
-
-
-
-
-        # for i in range(0, len(surfaces), 1):
-        #     surface = surfaces[i]
-        #     contour_points = points[surface[:,0].astype(int) - 1].astype(int)
-        #     contour_normals = normals[surface[:,1].astype(int) - 1]
-        #     contour_normal_lines = normal_lines[i]
-
-
-            # if contour_normals[:,2:3].min() >= 0 and not np.isnan(contour_normal_lines).any():
-            #     print(contour_normals)
-            #     cv2.drawContours(image, [contour_points], 0, (100, 100, 120), -1)
-            #     cv2.drawContours(image, [contour_points], 0, (0,0,255), 1)
-
-
-            # center = contour_points.mean(0).astype(int)
-            # image = cv2.circle(image, (center[0], center[1]), 8, (255, 255, 0), -1)
-                
-
-            # for j, (point, n, nl) in enumerate(zip(contour_points, contour_normals, contour_normal_lines)):
-            #     point_start = nl[0].astype(int)
-            #     point_end = nl[1].astype(int)
-
-
-
-            #     if n[2] >= 0:
-            #         col = (0, 110, 200)
-            #         image = cv2.circle(image, (point[0] + 1, point[1] + 1), 4, (0, 0, 255), -1)
-            #         image = cv2.line(image, (point_start[0], point_start[1]), (point_end[0], point_end[1]), col, 1, 1)
-
-            #     else:
-            #         col = (255, 0,0)
-            #         image = cv2.circle(image, (point[0] + 1, point[1] + 1), 4, (255, 0, 0), -1)
-            #         image = cv2.line(image, (point_start[0], point_start[1]), (point_end[0], point_end[1]), col, 1, 1)
-                    
+            for contour in surface_contours:
+                cv2.drawContours(image, [contour], 0, color, -1)
+                cv2.drawContours(image, [contour], 0, (50, 50, 50), 4)
 
         self._scene = image
 
@@ -219,9 +153,11 @@ class DummyOpencvRenderer:
         self._scene = image
 
     def _render_obj(self, model):
-        points, n, nl = self._world.camera.view(model)
+        viewed_points, viewed_normals = self._world.camera.view(model)
+        viewed_surfaces = model._surfaces
+        viewed_color = model.color
 
-        return self._draw_obj(points, n, model._surfaces, nl)
+        return self._draw_obj(viewed_points, viewed_normals, viewed_surfaces, viewed_color)
 
     def _render_dummy_cube(self, model):
         points = self._world.camera.view(model)

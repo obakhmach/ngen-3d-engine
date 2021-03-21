@@ -5,6 +5,7 @@ from ..tool.tools import calc_rotation_matrix
 from ..tool.tools import calc_translation_matrix
 from ..tool.tools import calc_scaling_matrix
 from ..tool.tools import parametrical_line_point
+from ..tool.tools import normals_to_degrees
 
 class Model:
     def __init__(self,
@@ -221,6 +222,8 @@ class DummyCubeModel(Model):
 
 
 class ObjModel(Model):
+    DEFAULT_COLOR = (250, 250, 42)
+
     def __init__(self,
                  obj_file_path,
     	         pos_x=None,
@@ -231,7 +234,8 @@ class ObjModel(Model):
     	         angle_z_deg=None,
     	         scale_x=None,
     	         scale_y=None,
-    	         scale_z=None):
+    	         scale_z=None,
+                 color=None):
         super().__init__(pos_x,
                          pos_y,
                          pos_z,
@@ -241,23 +245,23 @@ class ObjModel(Model):
                          scale_x,
                          scale_y,
                          scale_z)
+        if color == None:
+            color = self.DEFAULT_COLOR
+
         self._coordinate_axe_line_x = None
         self._coordinate_axe_line_y = None
         self._coordinate_axe_line_z = None
-        self._normal_lines = None
-        self._normal_lines_default = None
         self._normals = None
         self._vertexes = None
         self._surfaces = None
         self._center = np.zeros((3,))
-
+        self.color = color
         self._parser = SimpleObjParser(obj_file_path)
         self._obj_file_path = obj_file_path
 
         self._load_from_obj()
         self._calculate_center()
         self._translate_to_center()
-        self._calc_normal_lines()
 
     @property
     def center(self):
@@ -290,7 +294,14 @@ class ObjModel(Model):
     @center_z.setter
     def center_z(self, value):
         self._center[2] = value
-    
+
+
+    def _translate_to_center(self):
+        translation_matrix = calc_translation_matrix(-self.center_x,
+                                                     -self.center_y,
+                                                     -self.center_z)
+        self._vertexes = np.matmul(self._vertexes[:, :], translation_matrix.T)
+
     def _calculate_center(self):
         center = None
 
@@ -303,29 +314,6 @@ class ObjModel(Model):
         self.center_z = np.mean(zs)
 
         self._center = np.array([self.center_x, self.center_y, self.center_z])
-
-    def _calc_normal_lines(self):
-        self._normal_lines_default = np.ones((self._surfaces.shape[0] * 3, 2, 4))
-        self._normal_lines = np.ones((self._surfaces.shape[0] * 3, 2, 4))
-
-        for i in range(0, len(self._surfaces), 1):
-            surface = self._surfaces[i]
-            contour_normals = (self._normals[surface[:,1].astype(int) - 1])
-            contour_points = self._vertexes[surface[:,0].astype(int) - 1]
-
-            for j, (normal, start_point) in enumerate(zip(contour_normals, contour_points)):
-                end_point = parametrical_line_point(start_point, normal, 0.2)
-                normal_line = np.array([start_point, end_point])
-
-                self._normal_lines_default[i*3 + j] = normal_line
-
-
-    def _translate_to_center(self):
-        translation_matrix = calc_translation_matrix(-self.center_x,
-                                                     -self.center_y,
-                                                     -self.center_z)
-        self._vertexes = np.matmul(self._vertexes[:, :], translation_matrix.T)
-    
     
     def _load_from_obj(self):
         vertexes, normals, surfaces = self._parser.parse()
@@ -347,7 +335,6 @@ class ObjModel(Model):
             
             self._normal_lines[i] = np.matmul(points, transform_matrix.T)
 
-
     def update(self):
         scaling_matrix = calc_scaling_matrix(self._scale_x,
                                              self._scale_y,
@@ -361,12 +348,11 @@ class ObjModel(Model):
                                                      self._pos_y,
                                                      self._pos_z)
         
-        transform_matrix = np.matmul(rotation_matrix, scaling_matrix)
-        transform_matrix = np.matmul(translation_matrix, transform_matrix)
 
+        transform_matrix = np.matmul(translation_matrix, rotation_matrix)
+        transform_and_scale_matrix = np.matmul(transform_matrix, scaling_matrix)
 
         self._update_normals(transform_matrix)
-        self._update_points(transform_matrix)
-        self._update_normal_lines(transform_matrix)
+        self._update_points(transform_and_scale_matrix)
         
     

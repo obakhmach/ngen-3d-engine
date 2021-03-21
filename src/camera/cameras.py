@@ -8,6 +8,7 @@ from ..tool.tools import parametrical_line_point
 from ..tool.tools import calc_rotation_matrix
 from ..tool.tools import calc_translation_matrix
 from ..tool.tools import calc_scaling_matrix
+from ..tool.tools import normals_to_degrees
 
 from src.model.models import ObjModel
 from src.model.models import DummyCubeModel
@@ -257,29 +258,7 @@ class PerspectiveCamera:
 
         points = np.matmul(points[:,:], transform_matrix.T)
 
-        ###############
-
         normals = np.matmul(normals[:,:], np.linalg.inv(transform_matrix))
-
-        normal_lines = []
-
-        for i in range(0, len(model._surfaces), 1):
-            surface = model._surfaces[i]
-            contour_normals = (normals[surface[:,1].astype(int) - 1])
-            contour_points = points[surface[:,0].astype(int) - 1]
-
-            group = []
-
-            for j, (normal, start_point) in enumerate(zip(contour_normals, contour_points)):
-                end_point = parametrical_line_point(start_point, normal, 5)
-                normal_line = np.array([start_point, end_point])
-
-                group.append(normal_line)
-
-
-            normal_lines.append(group)
-
-        ###############
 
         self._prev_transform = transform_matrix
 
@@ -291,18 +270,6 @@ class PerspectiveCamera:
         points = np.matmul(points[:,:], projection_matrix.T)
         normals = np.matmul(normals[:,:], np.linalg.inv(projection_matrix))
 
-        ###############
-        
-        for i, normal_line_group in enumerate(normal_lines):
-            for j, normal_line in enumerate(normal_line_group):
-                normal_line_points = normal_line
-
-                normal_line_points = np.matmul(normal_line_points[:,:], projection_matrix.T)
-
-                normal_lines[i][j] =  self.perspective_division(normal_line_points)
-
-        ##############
-
         self._pos_x_before = self._pos_x
         self._pos_y_before = self._pos_y
         self._pos_z_before = self._pos_z
@@ -310,7 +277,7 @@ class PerspectiveCamera:
         self._angle_y_deg_before = self.angle_y_deg
         self._angle_z_deg_before = self.angle_z_deg
 
-        return self.perspective_division(points), normals, np.array(normal_lines)
+        return self.perspective_division(points), normals
 
 
         
