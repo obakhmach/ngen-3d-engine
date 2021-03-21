@@ -165,7 +165,21 @@ class DummyOpencvRenderer:
         return self._draw_cube(points)
 
     def render(self):
-        for model in self._world.models:
+        def distance(x1, y1, z1, x2, y2, z2):
+            return math.sqrt((x2 - x1)**2 + (y2 - y2)**2 + (z2 - z1)**2)
+
+        c = self._world.camera
+
+        models = sorted(self._world.models, 
+                        key=lambda m: -distance(m.pos_x,
+                                                m.pos_y,
+                                                m.pos_z,
+                                                c.pos_x,
+                                                c.pos_y,
+                                                c.pos_z),
+                        reverse=True)
+
+        for model in models:
             if isinstance(model, ObjModel):
                 self._render_obj(model)
 

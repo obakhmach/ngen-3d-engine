@@ -105,6 +105,13 @@ class PerspectiveCamera:
         self._projective_plane_height = projective_plane_height
         self._prev_transform = None
 
+        self._projection_matrix = calc_projection_matrix(self._field_of_view_angle_deg,
+                                                         self._aspect_ratio,
+                                                         self._far,
+                                                         self._near)
+
+        self._update_matrix_for_pos()
+
     @property
     def world(self):
     	return self._world
@@ -137,6 +144,7 @@ class PerspectiveCamera:
     @pos_x.setter
     def pos_x(self, value):
         self._pos_x = value
+        self._update_matrix_for_pos()
 
     @property
     def pos_y(self):
@@ -145,6 +153,7 @@ class PerspectiveCamera:
     @pos_y.setter
     def pos_y(self, value):
         self._pos_y = value
+        self._update_matrix_for_pos()
 
     @property
     def pos_z(self):
@@ -153,6 +162,7 @@ class PerspectiveCamera:
     @pos_z.setter
     def pos_z(self, value):
         self._pos_z = value
+        self._update_matrix_for_pos()
 
     @property
     def angle_x_deg(self):
@@ -161,6 +171,7 @@ class PerspectiveCamera:
     @angle_x_deg.setter
     def angle_x_deg(self, value):
         self._angle_x_deg = value
+        self._update_matrix_for_pos()
 
     @property
     def angle_y_deg(self):
@@ -169,6 +180,7 @@ class PerspectiveCamera:
     @angle_y_deg.setter
     def angle_y_deg(self, value):
         self._angle_y_deg = value
+        self._update_matrix_for_pos()
 
     @property
     def angle_z_deg(self):
@@ -177,6 +189,7 @@ class PerspectiveCamera:
     @angle_z_deg.setter
     def angle_z_deg(self, value):
         self._angle_z_deg = value
+        self._update_matrix_for_pos()
 
     @property
     def field_of_view_angle_deg(self):
@@ -196,21 +209,72 @@ class PerspectiveCamera:
 
     def move_x(self, value):
         self._pos_x -= value
+        self._update_matrix_for_move()
 
     def move_y(self, value):
         self._pos_y += value
+        self._update_matrix_for_move()
 
     def move_z(self, value):
         self._pos_z += value
+        self._update_matrix_for_move()
 
     def rotate_x(self, value):
         self._angle_x_deg += value
+        self._update_matrix_for_move()
 
     def rotate_y(self, value):
         self._angle_y_deg += value
+        self._update_matrix_for_move()
 
     def rotate_z(self, value):
         self._angle_z_deg += value
+        self._update_matrix_for_move()
+
+    def _update_matrix_for_move(self):
+        delta_x = self._pos_x - self._pos_x_before
+        delta_y = self._pos_y - self._pos_y_before
+        delta_z = self._pos_z - self._pos_z_before
+        delta_angle_x_deg = self._angle_x_deg - self._angle_x_deg_before
+        delta_angle_y_deg = self._angle_y_deg - self._angle_y_deg_before
+        delta_angle_z_deg = self._angle_z_deg - self._angle_z_deg_before
+        
+
+        tranlate_matrix = calc_translation_matrix(delta_x, delta_y, delta_z)
+        rotate_matrix = calc_rotation_matrix(delta_angle_x_deg, delta_angle_y_deg, delta_angle_z_deg)
+
+        self._transform_matrix = np.matmul(rotate_matrix, tranlate_matrix)
+
+        if self._prev_transform is None:
+            prev_tranlate_matrix = calc_translation_matrix(self._pos_x, self.pos_y, self.pos_z)
+            prev_rotate_matrix = calc_rotation_matrix(self._angle_x_deg, self._angle_y_deg, self._angle_z_deg)
+
+            self._prev_transform = np.matmul(rotate_matrix, tranlate_matrix)
+
+        self._transform_matrix = np.matmul(self._transform_matrix, self._prev_transform)
+
+        self._prev_transform = self._transform_matrix
+        self._pos_x_before = self._pos_x
+        self._pos_y_before = self._pos_y
+        self._pos_z_before = self._pos_z
+        self._angle_x_deg_before = self.angle_x_deg
+        self._angle_y_deg_before = self.angle_y_deg
+        self._angle_z_deg_before = self.angle_z_deg
+
+
+    def _update_matrix_for_pos(self):
+        tranlate_matrix = calc_translation_matrix(self._pos_x, self._pos_y, self._pos_z)
+        rotate_matrix = calc_rotation_matrix(self._angle_x_deg, self._angle_y_deg, self._angle_z_deg)
+
+        self._transform_matrix = np.matmul(rotate_matrix, tranlate_matrix)
+        self._prev_transform = self._transform_matrix
+        self._pos_x_before = self._pos_x
+        self._pos_y_before = self._pos_y
+        self._pos_z_before = self._pos_z
+        self._angle_x_deg_before = self.angle_x_deg
+        self._angle_y_deg_before = self.angle_y_deg
+        self._angle_z_deg_before = self.angle_z_deg
+
     
     def perspective_division(self, points):
         d2_points = np.ones((points.shape[0], 2))
@@ -235,47 +299,13 @@ class PerspectiveCamera:
         return d2_points
 
     def view(self, model):
-        delta_x = self._pos_x - self._pos_x_before
-        delta_y = self._pos_y - self._pos_y_before
-        delta_z = self._pos_z - self._pos_z_before
-        delta_angle_x_deg = self._angle_x_deg - self._angle_x_deg_before
-        delta_angle_y_deg = self._angle_y_deg - self._angle_y_deg_before
-        delta_angle_z_deg = self._angle_z_deg - self._angle_z_deg_before
         points = model.points
         normals = model._normals
 
-        tranlate_matrix = calc_translation_matrix(delta_x, delta_y, delta_z)
-        rotate_matrix = calc_rotation_matrix(delta_angle_x_deg, delta_angle_y_deg, delta_angle_z_deg)
-        transform_matrix = np.matmul(rotate_matrix, tranlate_matrix)
-
-        if self._prev_transform is None:
-            prev_tranlate_matrix = calc_translation_matrix(self._pos_x, self.pos_y, self.pos_z)
-            prev_rotate_matrix = calc_rotation_matrix(self._angle_x_deg, self._angle_y_deg, self._angle_z_deg)
-
-            self._prev_transform = np.matmul(rotate_matrix, tranlate_matrix)
-
-        transform_matrix = np.matmul(transform_matrix, self._prev_transform)
-
-        points = np.matmul(points[:,:], transform_matrix.T)
-
-        normals = np.matmul(normals[:,:], np.linalg.inv(transform_matrix))
-
-        self._prev_transform = transform_matrix
-
-        projection_matrix = calc_projection_matrix(self._field_of_view_angle_deg,
-                                                   self._aspect_ratio,
-                                                   self._far,
-                                                   self._near)
-
-        points = np.matmul(points[:,:], projection_matrix.T)
-        normals = np.matmul(normals[:,:], np.linalg.inv(projection_matrix))
-
-        self._pos_x_before = self._pos_x
-        self._pos_y_before = self._pos_y
-        self._pos_z_before = self._pos_z
-        self._angle_x_deg_before = self.angle_x_deg
-        self._angle_y_deg_before = self.angle_y_deg
-        self._angle_z_deg_before = self.angle_z_deg
+        points = np.matmul(points[:,:], self._transform_matrix.T)
+        normals = np.matmul(normals[:,:], np.linalg.inv(self._transform_matrix))
+        points = np.matmul(points[:,:], self._projection_matrix.T)
+        normals = np.matmul(normals[:,:], np.linalg.inv(self._projection_matrix))
 
         return self.perspective_division(points), normals
 
