@@ -2,6 +2,25 @@ import numpy as np
 import re
 
 
+class Parsed:
+    def __init__(self, vertexes, normals, surfaces):
+        self._vertexes = vertexes
+        self._normals = normals
+        self._surfaces = surfaces
+
+    @property
+    def surfaces(self):
+        return self._surfaces
+
+    @property
+    def normals(self):
+        return self._normals
+
+    @property
+    def vertexes(self):
+        return self._vertexes
+
+
 class SimpleObjParser:
     def __init__(self, path):
         self._path = path
@@ -72,4 +91,4 @@ class SimpleObjParser:
         normals = np.array(normals)
         surfaces = np.array(surfaces)
 
-        return vertexes, normals, surfaces
+        return Parsed(vertexes, normals, surfaces)
