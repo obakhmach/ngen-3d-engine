@@ -25,7 +25,7 @@ def world_needed(cls):
     return cls
 
 
-# @world_needed
+@world_needed
 class DummyOpencvRenderer:
     DEFAULT_CHANNELS = 3
     DEFAULT_BACKGROUND_COLOR = (0, 0, 0)

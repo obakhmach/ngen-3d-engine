@@ -76,8 +76,6 @@ class Model(ABC):
         self._surfaces = None
         self._points = None
 
-        
-
     @property
     def color(self):
         return self._color
@@ -280,68 +278,7 @@ class Model(ABC):
 
     def rotate_z(self, value):
         self._angle_z_deg += value
-
-
-class DummyCubeModel(Model):
-    def __init__(self,
-    	         pos_x=None,
-    	         pos_y=None,
-    	         pos_z=None, 
-    	         angle_x_deg=None,
-    	         angle_y_deg=None,
-    	         angle_z_deg=None,
-    	         scale_x=None,
-    	         scale_y=None,
-    	         scale_z=None):
-        super().__init__(pos_x,
-                         pos_y,
-                         pos_z,
-                         angle_x_deg,
-                         angle_y_deg,
-                         angle_z_deg,
-                         scale_x,
-                         scale_y,
-                         scale_z)
-
-
-        self._calculate_cube_coordinates()
-
-    def _calculate_cube_coordinates(self):
-        delta = 1
-        center_x = 0
-        center_y = 0
-        center_z = 0
-
-        point_1 = np.array([center_x + delta, center_y + delta, center_z + delta, 1])
-        point_2 = np.array([center_x - delta, center_y + delta, center_z + delta, 1])
-        point_3 = np.array([center_x + delta, center_y - delta, center_z + delta, 1])
-        point_4 = np.array([center_x - delta, center_y - delta, center_z + delta, 1])
-        point_5 = np.array([center_x + delta, center_y + delta, center_z - delta, 1])
-        point_6 = np.array([center_x - delta, center_y + delta, center_z - delta, 1])
-        point_7 = np.array([center_x + delta, center_y - delta, center_z - delta, 1])
-        point_8 = np.array([center_x - delta, center_y - delta, center_z - delta, 1])
-
-        self._vertexes = np.array([point_1, point_2, point_3, point_4, point_5, point_6, point_7, point_8])
-
-    def update(self):
-        scaling_matrix = calc_scaling_matrix(self._scale_x,
-                                             self._scale_y,
-                                             self._scale_z)
-
-        rotation_matrix = calc_rotation_matrix(self._angle_x_deg,
-                                               self._angle_y_deg,
-                                               self._angle_z_deg)
-
-        translation_matrix = calc_translation_matrix(self._pos_x,
-                                                     self._pos_y,
-                                                     self._pos_z)
-
-        transform_matrix = np.matmul(translation_matrix, rotation_matrix)
-
-        self._points = np.matmul(self._vertexes, scaling_matrix.T)
-        self._points = np.matmul(self._points[:,:], transform_matrix.T)
         
-
 
 class ObjModel(Model):
     def __init__(self,
@@ -378,8 +315,6 @@ class ObjModel(Model):
         self._normals_default = self._normals
 
         self._to_center()
-
-
         
     def _load_from_obj(self):
         self._parsed = self._parser.parse()
