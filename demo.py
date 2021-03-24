@@ -67,10 +67,10 @@ if __name__ == '__main__':
             world.camera.move_y(-20)
 
         elif key == ord('a'):
-            world.camera.move_x(-20)
+            world.models[1].move_x(-20)
 
         elif key == ord('d'):
-            world.camera.move_x(20)
+            world.models[1].move_x(20)
 
         elif key == ord('t'):
             world.camera.rotate_x(5)
@@ -91,7 +91,7 @@ if __name__ == '__main__':
             world.models[0].rotate_y(-5)
 
 
-        angle += 5
+        angle += 1
 
         z = int(math.cos(math.radians(angle)) * radius)
         x = int(math.sin(math.radians(angle)) * radius)
@@ -100,7 +100,7 @@ if __name__ == '__main__':
         x4 = int(math.sin(math.radians(angle*4)) * radius/8)
 
         
-        camera._angle_y_deg += 5
+        camera._angle_y_deg += 1
         camera._pos_x = x
         camera.pos_z = z
 

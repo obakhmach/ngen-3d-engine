@@ -102,56 +102,6 @@ class DummyOpencvRenderer:
 
         self._scene = image
 
-
-    def _draw_cube(self, points):
-        image = self._scene
-        cube = points
-
-        if not (np.isnan(np.sum(cube[0])) or np.isnan(np.sum(cube[1]))):
-            image = cv2.line(image, (int(cube[0][0]), int(cube[0][1])), (int(cube[1][0]), int(cube[1][1])), (0, 0, 255), 3)
-    
-        if not (np.isnan(np.sum(cube[0])) or np.isnan(np.sum(cube[2]))):
-            image = cv2.line(image, (int(cube[0][0]), int(cube[0][1])), (int(cube[2][0]), int(cube[2][1])), (0, 0, 255), 3)
-    
-        if not (np.isnan(np.sum(cube[2])) or np.isnan(np.sum(cube[3]))):
-            image = cv2.line(image, (int(cube[2][0]), int(cube[2][1])), (int(cube[3][0]), int(cube[3][1])), (0, 0, 255), 3)
-    
-        if not (np.isnan(np.sum(cube[3])) or np.isnan(np.sum(cube[1]))):
-            image = cv2.line(image, (int(cube[3][0]), int(cube[3][1])), (int(cube[1][0]), int(cube[1][1])), (0, 0, 255), 3)
-    
-        if not (np.isnan(np.sum(cube[4])) or np.isnan(np.sum(cube[5]))):
-            image = cv2.line(image, (int(cube[4][0]), int(cube[4][1])), (int(cube[5][0]), int(cube[5][1])), (0, 0, 255), 3)
-    
-        if not (np.isnan(np.sum(cube[4])) or np.isnan(np.sum(cube[6]))):
-            image = cv2.line(image, (int(cube[4][0]), int(cube[4][1])), (int(cube[6][0]), int(cube[6][1])), (0, 0, 255), 3)
-    
-        if not (np.isnan(np.sum(cube[6])) or np.isnan(np.sum(cube[7]))):
-            image = cv2.line(image, (int(cube[6][0]), int(cube[6][1])), (int(cube[7][0]), int(cube[7][1])), (0, 0, 255), 3)
-    
-        if not (np.isnan(np.sum(cube[7])) or np.isnan(np.sum(cube[5]))):
-            image = cv2.line(image, (int(cube[7][0]), int(cube[7][1])), (int(cube[5][0]), int(cube[5][1])), (0, 0, 255), 3)
-
-        if not (np.isnan(np.sum(cube[0])) or np.isnan(np.sum(cube[4]))):
-            image = cv2.line(image, (int(cube[0][0]), int(cube[0][1])), (int(cube[4][0]), int(cube[4][1])), (0, 0, 255), 3)
-    
-        if not (np.isnan(np.sum(cube[1])) or np.isnan(np.sum(cube[5]))):
-            image = cv2.line(image, (int(cube[1][0]), int(cube[1][1])), (int(cube[5][0]), int(cube[5][1])), (0, 0, 255), 3)
-        
-        if not (np.isnan(np.sum(cube[2])) or np.isnan(np.sum(cube[6]))):
-            image = cv2.line(image, (int(cube[2][0]), int(cube[2][1])), (int(cube[6][0]), int(cube[6][1])), (0, 0, 255), 3)
-    
-        if not (np.isnan(np.sum(cube[3])) or np.isnan(np.sum(cube[7]))):
-            image = cv2.line(image, (int(cube[3][0]), int(cube[3][1])), (int(cube[7][0]), int(cube[7][1])), (0, 0, 255), 3)
-
-        for point in cube:
-            if not np.isnan(np.sum(point)):
-                x = int(point[0])
-                y = int(point[1])
-        
-                image = cv2.circle(image, (x, y), 5, (0, 255, 0), -1)
-
-        self._scene = image
-
     def _render_obj(self, model):
         viewed_points, viewed_normals = self._world.camera.view(model)
         viewed_surfaces = model._surfaces
