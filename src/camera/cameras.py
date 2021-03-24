@@ -11,7 +11,6 @@ from ..tool.tools import calc_scaling_matrix
 from ..tool.tools import normals_to_degrees
 
 from src.model.models import ObjModel
-from src.model.models import DummyCubeModel
 
 
 def world_needed(cls):

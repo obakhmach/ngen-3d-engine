@@ -3,7 +3,6 @@ import numpy as np
 import math
 
 from src.model.models import ObjModel
-from src.model.models import DummyCubeModel
 
 from ..tool.tools import parametrical_line_point
 from ..tool.tools import normals_to_degrees

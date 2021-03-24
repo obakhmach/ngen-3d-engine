@@ -5,14 +5,13 @@ import math
 from random import randint
 from path import Path
 from src.model.models import ObjModel
-from src.model.models import DummyCubeModel
 from src.camera.cameras import PerspectiveCamera
 from src.render.renderers import DummyOpencvRenderer
 from src.world.worlds import World
 
 
-VIEWPORT_WIDTH = 1000
-VIEWPORT_HEIGHT = 1000
+VIEWPORT_WIDTH = 600
+VIEWPORT_HEIGHT = 600
 
 if __name__ == '__main__':
     camera = PerspectiveCamera(VIEWPORT_WIDTH, VIEWPORT_HEIGHT)
