@@ -23,7 +23,7 @@ if __name__ == '__main__':
     angle = 0
     radius = -800
 
-    model_obj_path = str(Path('data') / 'cube.obj')
+    model_obj_path = str(Path('data') / 's.obj')
     model1 = ObjModel(model_obj_path, scale_x=100, scale_y=500, scale_z=100, pos_x=0, pos_z=0)
     model2 = ObjModel(model_obj_path, scale_x=130, scale_y=120, scale_z=100, pos_x=300, color=(79, 160, 247))
     model3 = ObjModel(model_obj_path, scale_x=110, scale_y=110, scale_z=100, pos_x=-300, pos_y=-300, color=(186, 79, 247))
