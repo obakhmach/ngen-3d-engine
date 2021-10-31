@@ -21,30 +21,34 @@ if __name__ == '__main__':
     world.camera = camera
     world.renderer = renderer
     angle = 0
-    radius = -800
+    radius = 1800
 
-    model_obj_path = str(Path('data') / 's.obj')
-    model1 = ObjModel(model_obj_path, scale_x=100, scale_y=500, scale_z=100, pos_x=0, pos_z=0)
-    model2 = ObjModel(model_obj_path, scale_x=130, scale_y=120, scale_z=100, pos_x=300, color=(79, 160, 247))
-    model3 = ObjModel(model_obj_path, scale_x=110, scale_y=110, scale_z=100, pos_x=-300, pos_y=-300, color=(186, 79, 247))
-    model4 = ObjModel(model_obj_path, scale_x=20, scale_y=20, scale_z=20, pos_x=-200, pos_y=200, color=(186, 79, 247))
-    model5 = ObjModel(model_obj_path, scale_x=20, scale_y=20, scale_z=20, pos_x=-200, pos_y=200, color=(186, 79, 247))
-    model6 = ObjModel(model_obj_path, scale_x=20, scale_y=20, scale_z=20, pos_x=-200, pos_y=200, color=(186, 79, 247))
-    model7 = ObjModel(model_obj_path, scale_x=20, scale_y=20, scale_z=20, pos_x=-200, pos_y=200, color=(186, 79, 247))
-    model8 = ObjModel(model_obj_path, scale_x=20, scale_y=20, scale_z=20, pos_x=-200, pos_y=200, color=(186, 79, 247))
-    model9 = ObjModel(model_obj_path, scale_x=20, scale_y=20, scale_z=20, pos_x=-200, pos_y=200, color=(186, 79, 247))
+    rabit_path = str(Path('data') / 'rabit')
+    letter_f_path = str(Path('data') / 'letter_f')
+    letter_u_path = str(Path('data') / 'letter_u')
+    letter_c_path = str(Path('data') / 'letter_c')
+    letter_k_path = str(Path('data') / 'letter_k')
+    spaceship_path = str(Path('data') / 'spaceship')
+
+    letter_f_model = ObjModel(letter_f_path, scale_x=80, scale_y=100, scale_z=100, pos_x=-150*4, pos_y=-200, color=(79, 160, 247))
+    letter_u_model = ObjModel(letter_u_path, scale_x=80, scale_y=100, scale_z=100, pos_x=-50*4, pos_y=-200, color=(66, 345, 72))
+    letter_c_model = ObjModel(letter_c_path, scale_x=80, scale_y=100, scale_z=100, pos_x=50*4, pos_y=-200, color=(245, 66, 90))
+    letter_k_model = ObjModel(letter_k_path, scale_x=80, scale_y=100, scale_z=100, pos_x=150*4, pos_y=-200, color=(245, 66, 242))
+    rabit_model = ObjModel(rabit_path, scale_x=18, scale_y=18, scale_z=18, pos_x=0, pos_y=370, angle_z_deg=0, angle_x_deg=-90, color=(245, 66, 242))
+    spaceship_model = ObjModel(spaceship_path, scale_x=4, scale_y=4, scale_z=4, pos_x=0, pos_y=-570, angle_z_deg=0, angle_x_deg=-30, color=(150, 150, 150))
 
 
-    world.add_model(model1)
-    world.add_model(model2)
-    world.add_model(model3)
-    world.add_model(model4)
-    world.add_model(model5)
-    world.add_model(model6)
-    world.add_model(model7)
-    world.add_model(model8)
-    world.add_model(model9)
+    world.add_model(letter_f_model)
+    world.add_model(letter_u_model)
+    world.add_model(letter_c_model)
+    world.add_model(letter_k_model)
+    world.add_model(rabit_model)
+    world.add_model(spaceship_model)    
+
     world.camera.move_z(radius)
+
+    world.camera.rotate_y(180)
+    world.camera.rotate_z(180)
     
     world.update()
 
@@ -53,7 +57,6 @@ if __name__ == '__main__':
         key = world.clear()
 
         if key == ord('w'):
-
             world.camera.move_z(20)
 
         elif key == ord('s'):
@@ -89,54 +92,13 @@ if __name__ == '__main__':
         elif key == ord('p'):
             world.models[0].rotate_y(-5)
 
+        for model in world.models[0:4]:
+            model.rotate_y(4)
+            model.rotate_x(0)
 
-        angle += 1
 
-        z = int(math.cos(math.radians(angle)) * radius)
-        x = int(math.sin(math.radians(angle)) * radius)
-
-        z4 = int(math.cos(math.radians(angle*4)) * radius/8)
-        x4 = int(math.sin(math.radians(angle*4)) * radius/8)
-
-        
-        camera._angle_y_deg += 1
-        camera._pos_x = x
-        camera.pos_z = z
-
-        model4.pos_x = x4
-        model4.pos_z = z4
-        model4.color = (randint(100, 255), randint(100, 255), randint(100, 255))
-        model4.pos_y = int(math.sin(angle/100) * 250)
-
-        model5.pos_x = x4
-        model5.pos_z = z4
-        model5.color = (randint(100, 255), randint(100, 255), randint(100, 255))
-        model5.pos_y = int(math.sin(angle/100) * 250) + 40
-
-        model6.pos_x = x4
-        model6.pos_z = z4
-        model6.color = (randint(100, 255), randint(100, 255), randint(100, 255))
-        model6.pos_y = int(math.sin(angle/100) * 250) + 90
-
-        model7.pos_x = x4
-        model7.pos_z = z4
-        model7.color = (randint(100, 255), randint(100, 255), randint(100, 255))
-        model7.pos_y = int(math.sin(angle/100) * 250) - 40
-
-        model8.pos_x = x4
-        model8.pos_z = z4
-        model8.color = (randint(100, 255), randint(100, 255), randint(100, 255))
-        model8.pos_y = int(math.sin(angle/100) * 250) - 90
-
-        model9.pos_x = x4
-        model9.pos_z = z4
-        model9.color = (randint(100, 255), randint(100, 255), randint(100, 255))
-        model9.pos_y = int(math.sin(angle/100) * 250) -  140
-
-        for model in world.models[5:9]:
-            model.rotate_z(4)
-            model.rotate_y(3)
-            model.rotate_x(5)
+        world.models[4].rotate_z(3)
+        world.models[5].rotate_z(3)
 
         world.update()
         world.render()

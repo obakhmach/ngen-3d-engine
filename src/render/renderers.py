@@ -4,24 +4,10 @@ import math
 
 from src.model.models import ObjModel
 
-from ..tool.tools import parametrical_line_point
-from ..tool.tools import normals_to_degrees
+from src.tool.tools import parametrical_line_point
+from src.tool.tools import normals_to_degrees
 
-
-def world_needed(cls):
-    for attr in cls.__dict__:
-        if callable(getattr(cls, attr)) and '_' not in attr:
-            def decorator(f):
-                def wrapper(*args, **kwargs):
-                    if isinstance(args[0], cls) and args[0].world is None:
-                        raise ValueError('Renderer can not be used without attaching it to world.')
-
-                    return f(*args, **kwargs)
-                
-                return wrapper
-
-            setattr(cls, attr, decorator(getattr(cls, attr)))
-    return cls
+from src.world.worlds import world_needed
 
 
 @world_needed
@@ -65,8 +51,12 @@ class DummyOpencvRenderer:
         surface_describtion = {}
 
         for surface in surfaces:
-            contour_points = points[surface[:,0].astype(int) - 1].astype(int)
-            contour_normals = normals[surface[:,1].astype(int) - 1]
+            try:
+                contour_points = points[surface[:,0].astype(int) - 1].astype(int)
+                contour_normals = normals[surface[:,1].astype(int) - 1]
+
+            except:
+                breakpoint()
 
             surface_points = []
 

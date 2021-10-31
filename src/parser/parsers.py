@@ -1,94 +1,133 @@
-import numpy as np
 import re
+import numpy as np
+
+from abc import ABC
+from enum import Enum
+from typing import Pattern, List, Tuple
+from numpy.typing import NDArray
+from dataclasses import dataclass
 
 
-class Parsed:
-    def __init__(self, vertexes, normals, surfaces):
-        self._vertexes = vertexes
-        self._normals = normals
-        self._surfaces = surfaces
+@dataclass
+class ObjParsed:
+    """Class to keep all data describing specific
+    obj model. Class cover only data related to the
+    shape of the model ignoring model texture.
+    """
 
-    @property
-    def surfaces(self):
-        return self._surfaces
-
-    @property
-    def normals(self):
-        return self._normals
-
-    @property
-    def vertexes(self):
-        return self._vertexes
+    vertexes: NDArray
+    normals: NDArray
+    surfaces: NDArray
 
 
-class SimpleObjParser:
-    def __init__(self, path):
+class ObjParser(ABC):
+    def parse(self) -> ObjParsed:
+        """Reads the vertices, normals and surfaces.
+
+        Returns:
+            ObjParsed: The dataclass with the data.
+        """
+
+
+class SimpleObjParser(ObjParser):
+    """The simple class to parse obj files."""
+
+    _path: str
+    _vertices_pattern: Pattern
+    _normals_pattern: Pattern
+    _surfaces_pattern: Pattern
+
+    class ObjFileStatements(Enum):
+        """The regular expressions to parse the
+        .obj file.
+        """
+
+        VERTICES: str = r"v\s*(-?[0-9]*\.\d+|-?\d+)\s*(-?[0-9]*\.\d+|-?\d+)\s*(-?[0-9]*\.\d+|-?\d+)"
+        NORMALS: str = r"vn\s*(-?[0-9]*\.\d+|-?\d+)\s*(-?[0-9]*\.\d+|-?\d+)\s*(-?[0-9]*\.\d+|-?\d+)"
+        SURFACES: str = (
+            r"f\s*([0-9]*/[0-9]{0,}/[0-9]*)\s*([0-9]*/[0-9]{0,}/[0-9]*)"
+            r"\s*([0-9]*/[0-9]{0,}/[0-9]*)"
+        )
+
+    def __init__(self, path: str) -> None:
+        """The constructor used to inject path to
+        the parser.
+
+        Args:
+            path (str): The path where .obj file located.
+
+        Returns:
+            None
+        """
         self._path = path
-        self._comments = []
+        self._vertices_pattern = re.compile(self.ObjFileStatements.VERTICES.value)
+        self._normals_pattern = re.compile(self.ObjFileStatements.NORMALS.value)
+        self._surfaces_pattern = re.compile(self.ObjFileStatements.SURFACES.value)
 
-    def parse(self):
-        vertexes = []
-        surfaces = []
-        normals = []
+    def _surface_statement2list(self, statement: Tuple[str]) -> List[List[int]]:
+        """Transform parsed by regex surface .obj statement into
+        the valid numpy.
 
-        comment_regex = re.compile('^# (.*)')
-        surface_regex = re.compile('^f (.*)')
-        normal_regex = re.compile('^vn (.*)')
-        vertex_regex = re.compile('^v (.*)')
-        name_regex = re.compile('^g (.*)')
+        Args:
+            statement (Tuple[str]): The statement parsed within the
+                                    .obj surfaces regex. The statement
+                                    example ("2//1",  "8//1",  "4//1"),
+                                    ("6/4/1", "3/5/3", "7/6/5")
 
-        with open(self._path) as f:
-            lines = f.readlines()
+        Returns:
+            List[List[int]]: The statement as list of three lists.
+                             Example [[vertice1, normal1],
+                             [vertice2, normal2], [vertice3, normal3]]
+        """
 
-            self._comments.append(lines)
+        def map_function(statement_item) -> List[int]:
+            """Helper map function to extract for each
+            statement element (example "1//2", "1/1/1")
+            only first and last number and return as a list.
 
-        for line in lines:
-            if comment_regex.match(line):
-        	    pass
+            Returns:
+                List[int]: The list like vertice, normal]
+            """
+            splited = statement_item.split("/")
 
-            elif surface_regex.match(line):
-                if '//' in line:
-                    surface = np.array([np.array([float(v.replace('/n', '')) for v in surface.split('//')]) 
-                                            for surface 
-                                            in line.split(' ')[1:] 
-                                            if surface not in ['', '\n']], dtype=np.float)
-                else:
-                    surface = np.array([np.array([float(v.replace('/n', '')) for v in surface.split('/')]) 
-                                            for surface 
-                                            in line.split(' ')[1:] 
-                                            if surface not in ['', '\n']], dtype=np.float)
+            return [splited[0], splited[-1]]
 
-                surfaces.append(surface)
+        return list(map(map_function, statement))
 
-            elif normal_regex.match(line):
-                normal = [float(normal.replace('/n', '')) 
-                          for normal 
-                          in line.split(' ')[1:] 
-                          if normal not in ['', '\n']]
+    def parse(self) -> ObjParsed:
+        """Reads the .obj file and create
+        the ObjParsed dataclass based on the data in the file.
 
-                normal.append(1)
+        Returns:
+            ObjParsed: The dataclass with the data from the .obj file.
+        """
+        with open(self._path, "r") as f:
+            obj_file_content = f.read()
 
-                normal = np.array(normal)
+        vertices = np.array(
+            self._vertices_pattern.findall(obj_file_content), dtype=np.float
+        )
 
-                normals.append(normal)
+        vertexes = np.ones((vertices.shape[0], 4), dtype=np.float)
+        vertexes[:,0:3] = vertices
 
-            elif vertex_regex.match(line):
-                vertex = [float(vertex.replace('/n', '')) 
-                          for vertex 
-                          in line.split(' ')[1:] 
-                          if vertex not in ['', '\n']]
 
-                vertex.append(1)
+        normals = np.array(
+            self._normals_pattern.findall(obj_file_content), dtype=np.float
+        )
 
-                vertex = np.array(vertex, dtype=np.float)
+        normalst = np.ones((normals.shape[0], 4), dtype=np.float)
+        normalst[:,0:3] = normals
 
-                vertexes.append(vertex)
+        surfaces = np.array(
+            list(
+                map(
+                    self._surface_statement2list,
+                    self._surfaces_pattern.findall(obj_file_content),
+                )
+            ),
+            dtype=np.int,
+        )
 
-            elif name_regex.match(line):
-                self._name = line
+        return ObjParsed(vertexes=vertexes, normals=normalst, surfaces=surfaces)
 
-        vertexes = np.array(vertexes)
-        normals = np.array(normals)
-        surfaces = np.array(surfaces)
-
-        return Parsed(vertexes, normals, surfaces)

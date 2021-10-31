@@ -3,12 +3,12 @@ import numpy as np
 from abc import ABC
 from abc import abstractmethod
 
-from ..parser.parsers import SimpleObjParser
-from ..tool.tools import calc_rotation_matrix
-from ..tool.tools import calc_translation_matrix
-from ..tool.tools import calc_scaling_matrix
-from ..tool.tools import parametrical_line_point
-from ..tool.tools import normals_to_degrees
+from src.parser.parsers import SimpleObjParser
+from src.tool.tools import calc_rotation_matrix
+from src.tool.tools import calc_translation_matrix
+from src.tool.tools import calc_scaling_matrix
+from src.tool.tools import parametrical_line_point
+from src.tool.tools import normals_to_degrees
 
 
 class Model(ABC):

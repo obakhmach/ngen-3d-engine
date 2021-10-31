@@ -1,32 +1,17 @@
 import math
 import numpy as np
 
-from ..tool.tools import calc_rotation_matrix
-from ..tool.tools import calc_translation_matrix
-from ..tool.tools import calc_projection_matrix
-from ..tool.tools import parametrical_line_point
-from ..tool.tools import calc_rotation_matrix
-from ..tool.tools import calc_translation_matrix
-from ..tool.tools import calc_scaling_matrix
-from ..tool.tools import normals_to_degrees
+from src.tool.tools import calc_rotation_matrix
+from src.tool.tools import calc_translation_matrix
+from src.tool.tools import calc_projection_matrix
+from src.tool.tools import parametrical_line_point
+from src.tool.tools import calc_rotation_matrix
+from src.tool.tools import calc_translation_matrix
+from src.tool.tools import calc_scaling_matrix
+from src.tool.tools import normals_to_degrees
 
+from src.world.worlds import world_needed
 from src.model.models import ObjModel
-
-
-def world_needed(cls):
-    for attr in cls.__dict__:
-        if callable(getattr(cls, attr)) and '_' not in attr:
-            def decorator(f):
-                def wrapper(*args, **kwargs):
-                    if isinstance(args[0], cls) and args[0].world is None:
-                        raise ValueError('Renderer can not be used without attaching it to world.')
-
-                    return f(*args, **kwargs)
-                
-                return wrapper
-
-            setattr(cls, attr, decorator(getattr(cls, attr)))
-    return cls
 
 
 @world_needed
