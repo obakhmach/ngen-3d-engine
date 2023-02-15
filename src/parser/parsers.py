@@ -105,18 +105,18 @@ class SimpleObjParser(ObjParser):
             obj_file_content = f.read()
 
         vertices = np.array(
-            self._vertices_pattern.findall(obj_file_content), dtype=np.float
+            self._vertices_pattern.findall(obj_file_content), dtype=float
         )
 
-        vertexes = np.ones((vertices.shape[0], 4), dtype=np.float)
+        vertexes = np.ones((vertices.shape[0], 4), dtype=float)
         vertexes[:,0:3] = vertices
 
 
         normals = np.array(
-            self._normals_pattern.findall(obj_file_content), dtype=np.float
+            self._normals_pattern.findall(obj_file_content), dtype=float
         )
 
-        normalst = np.ones((normals.shape[0], 4), dtype=np.float)
+        normalst = np.ones((normals.shape[0], 4), dtype=float)
         normalst[:,0:3] = normals
 
         surfaces = np.array(
@@ -126,7 +126,7 @@ class SimpleObjParser(ObjParser):
                     self._surfaces_pattern.findall(obj_file_content),
                 )
             ),
-            dtype=np.int,
+            dtype=int,
         )
 
         return ObjParsed(vertexes=vertexes, normals=normalst, surfaces=surfaces)

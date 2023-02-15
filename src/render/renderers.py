@@ -30,7 +30,7 @@ class DummyOpencvRenderer:
     @property
     def world(self):
     	return self._world
-    
+
     @world.setter
     def world(self, value):
         if value.camera is None:
@@ -83,7 +83,7 @@ class DummyOpencvRenderer:
             surface_data = surface_describtion[key]
             surface_data = np.array(surface_data)
 
-            surface_contours = surface_data[:,:,0:2].astype(np.int)
+            surface_contours = surface_data[:,:,0:2].astype(int)
 
             for contour in surface_contours:
                 cv2.drawContours(image, [contour], 0, color, -1)
@@ -109,7 +109,7 @@ class DummyOpencvRenderer:
 
         c = self._world.camera
 
-        models = sorted(self._world.models, 
+        models = sorted(self._world.models,
                         key=lambda m: -distance(m.pos_x,
                                                 m.pos_y,
                                                 m.pos_z,
